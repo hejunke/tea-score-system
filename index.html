@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>茶艺部每日评分系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        header h1 {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .sync-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .sync-status.syncing {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        
+        .sync-status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .sync-status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+        
+        .view {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .dimension-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .dimension-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .dimension-checkbox:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .dimension-checkbox.selected {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+        
+        .dimension-checkbox .check-icon {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .dimension-checkbox.selected .check-icon {
+            background: #667eea;
+            border-color: #667eea;
+        }
+        
+        .dimension-checkbox.selected .check-icon::after {
+            content: '✓';
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .dimension-checkbox .dim-name {
+            font-size: 14px;
+            color: #ddd;
+        }
+        
+        .dimension-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .dimension-card h3 {
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .dimension-card .desc {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .score-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .score-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .score-option:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        
+        .score-option.selected {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+        
+        .score-option .radio-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .score-option.selected .radio-icon {
+            border-color: #667eea;
+        }
+        
+        .score-option.selected .radio-icon::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+        
+        .score-option .option-text {
+            flex: 1;
+            font-size: 14px;
+            color: #ddd;
+        }
+        
+        .score-option .option-score {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-left: 8px;
+        }
+        
+        .score-option.selected .option-score {
+            color: #fff;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-row .label {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .summary-row .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .summary-row.total .value {
+            font-size: 24px;
+            color: #667eea;
+        }
+        
+        .rating-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .rating-excellent { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .rating-good { background: rgba(33, 150, 243, 0.2); color: #2196f3; }
+        .rating-pass { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .rating-improve { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+        .rating-fail { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+        }
+        
+        .score-list-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .score-list-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .score-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .score-list-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .score-list-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .score-list-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #888;
+            flex-wrap: wrap;
+        }
+        
+        .score-list-dimensions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .dim-tag {
+            padding: 4px 10px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #667eea;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-close {
+            float: right;
+            font-size: 24px;
+            color: #888;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        
+        .modal-close:hover {
+            color: #fff;
+        }
+        
+        .share-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .share-card-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .share-card-header h3 {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .share-card-header .date {
+            color: #888;
+            font-size: 13px;
+        }
+        
+        .share-card-body {
+            margin-bottom: 20px;
+        }
+        
+        .share-card-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .share-card-row .label {
+            color: #aaa;
+        }
+        
+        .share-card-row .value {
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .share-card-footer {
+            text-align: center;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        @media (max-width: 600px) {
+            .dimension-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 22px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍵 茶艺部每日评分系统</h1>
+            <p>加定餐饮 · 楼面经理评分工具</p>
+            <div id="sync-status" class="sync-status" style="display:none;"></div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-view="score">📝 评分录入</div>
+            <div class="tab" data-view="list">📋 评分记录</div>
+            <div class="tab" data-view="stats">📈 月度统计</div>
+        </div>
+        
+        <!-- 评分录入视图 -->
+        <div class="view active" id="view-score">
+            <div class="card">
+                <h2>基本信息</h2>
+                <div class="form-group">
+                    <label>评分日期</label>
+                    <input type="date" id="score-date">
+                </div>
+                <div class="form-group">
+                    <label>被评茶艺师</label>
+                    <input type="text" id="employee-name" placeholder="输入茶艺师姓名">
+                </div>
+                <div class="form-group">
+                    <label>评分人（楼面经理）</label>
+                    <input type="text" id="evaluator-name" placeholder="输入评分人姓名">
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>选择评分维度（6选4）</h2>
+                <div class="dimension-selector" id="dimension-selector">
+                    <div class="dimension-checkbox" data-dim="自我管理">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">自我管理</span>
+                    </div>
+                    <div class="dimension-checkbox" data-dim="仪容仪表">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">仪容仪表</span>
+                    </div>
+                    <div class="dimension-checkbox" data-dim="工作配合">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">工作配合</span>
+                    </div>
+                    <div class="dimension-checkbox" data-dim="工作效率">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">工作效率</span>
+                    </div>
+                    <div class="dimension-checkbox" data-dim="贡献付出">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">贡献付出</span>
+                    </div>
+                    <div class="dimension-checkbox" data-dim="微笑服务">
+                        <span class="check-icon"></span>
+                        <span class="dim-name">微笑服务</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="dimension-cards"></div>
+            
+            <div class="card">
+                <h2>管理层加分（可选）</h2>
+                <div class="form-group">
+                    <label>加分人</label>
+                    <select id="management-bonus-by">
+                        <option value="">无加分</option>
+                        <option value="总经理">总经理</option>
+                        <option value="驻店股东">驻店股东</option>
+                        <option value="店长">店长</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>加分数值（20-60分）</label>
+                    <input type="number" id="management-bonus" min="20" max="60" placeholder="输入加分分值">
+                </div>
+                <div class="form-group">
+                    <label>加分理由（选填）</label>
+                    <textarea id="management-bonus-reason" placeholder="说明加分原因"></textarea>
+                </div>
+            </div>
+            
+            <div class="summary-card" id="score-summary">
+                <div class="summary-row">
+                    <span class="label">基础得分</span>
+                    <span class="value" id="summary-base">0分</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">维度加分</span>
+                    <span class="value" id="summary-bonus">0分</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">管理层加分</span>
+                    <span class="value" id="summary-mgmt">0分</span>
+                </div>
+                <div class="summary-row total">
+                    <span class="label">当日总分</span>
+                    <span class="value" id="summary-total">0分</span>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label>评语（选填）</label>
+                <textarea id="comment" placeholder="输入今日评语..."></textarea>
+            </div>
+            
+            <button class="btn" id="submit-btn" onclick="submitScore()">提交评分</button>
+            <button class="btn btn-secondary" onclick="generateDailySummary()">生成当日汇总分享</button>
+        </div>
+        
+        <!-- 评分记录视图 -->
+        <div class="view" id="view-list">
+            <div class="card">
+                <h2>评分记录</h2>
+                <div class="form-group">
+                    <label>筛选日期</label>
+                    <input type="date" id="filter-date" onchange="loadScores()">
+                </div>
+                <div id="score-list">
+                    <div class="loading">加载中</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 月度统计视图 -->
+        <div class="view" id="view-stats">
+            <div class="card">
+                <h2>月度统计</h2>
+                <div class="form-group">
+                    <label>选择月份</label>
+                    <input type="month" id="stats-month" onchange="loadStats()">
+                </div>
+                <div id="stats-content">
+                    <div class="loading">加载中</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 详情弹窗 -->
+    <div class="modal" id="detail-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://hqfyvejerzojmyifenwy.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnl2ZWplcnpvam15aWZlbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MjM2NTMsImV4cCI6MjEwMDE5OTY1M30.S4bTAcd19tjP-ApKA00ziCK4vpzWCyYuiWa1_p0xZpU';
+        
+        // 维度配置
+        const dimensions = {
+            '自我管理': {
+                desc: '准时上下班，准时参加各项会议，上班严于律己，不醉酒上岗。除工作需要以外不玩手机，保持良好的状态及精神面貌，积极向上有团队精神，敢于担当和负责任，主动向客人做感动动作和问好；见到客人或同事主动问好，见到客人或同事有困难时主动提供帮助。',
+                options: [
+                    { text: '全部做到、无违规', score: 20 },
+                    { text: '轻微问题（偶尔未问好、短暂私玩手机、精神状态一般）', score: 0 },
+                    { text: '严重问题（迟到早退、无故缺会、在岗懒散、不愿担当）', score: -10 },
+                    { text: '重大违规（醉酒上岗、拒不配合、消极怠工）', score: -20 },
+                    { text: '优秀+5分（当日全程自律到位、礼仪主动、状态极佳）', score: 25 }
+                ]
+            },
+            '仪容仪表': {
+                desc: '进入公司前整理好自我着装，要求大方得体，衣服整洁干净，头发干净整洁，规范佩戴工牌，上下班行走员工通道。',
+                options: [
+                    { text: '全部达标、仪容标准', score: 20 },
+                    { text: '轻微瑕疵（衣服轻微不整、头发凌乱、工牌佩戴不规范）', score: 0 },
+                    { text: '明显违规（未戴工牌、着装脏乱、私走客用通道）', score: -10 },
+                    { text: '多次不整改、仪容严重不合格', score: -20 },
+                    { text: '优秀+5分（当日仪容仪表全程标准、形象规范整洁）', score: 25 }
+                ]
+            },
+            '工作配合': {
+                desc: '主动及时配合支持其他部门，看到楼面有菜品堆积，第一时间先解决上菜问题，然后再倒茶与其他部门有良好互动，工作沟通到位，不因沟通缺失造成工作失误。',
+                options: [
+                    { text: '配合积极上菜、沟通顺畅、无差错', score: 20 },
+                    { text: '配合滞后、沟通不主动、轻微脱节', score: 0 },
+                    { text: '沟通不到位、配合消极，造成轻微工作失误', score: -10 },
+                    { text: '拒不配合、跨部门推诿、造成服务事故/工作失误', score: -20 },
+                    { text: '优秀+5分（主动跟进菜品，积极沟通，推动上菜流程更加顺畅快速，与其他部门配合默契有加）', score: 25 }
+                ]
+            },
+            '工作效率': {
+                desc: '动作轻快，动作娴熟，快速回应并执行客户的各项需求。',
+                options: [
+                    { text: '操作熟练、响应及时、高效到位', score: 20 },
+                    { text: '动作生疏、响应偏慢、服务拖沓', score: 0 },
+                    { text: '多次响应迟缓、操作失误、影响客情', score: -10 },
+                    { text: '工作懒散、拒不执行、效率极差', score: -20 },
+                    { text: '优秀+5分（当日操作流畅、响应迅速、服务高效标杆）', score: 25 }
+                ]
+            },
+            '贡献付出': {
+                desc: '积极主动协助楼面一切服务，协助传菜上菜、协助服务员席间操作、协助买单工作，发现地面油迹、水迹及时清理；心态积极、甘愿付出、以身作则、传播正能量。',
+                options: [
+                    { text: '主动补位、乐于付出、主动巡检卫生', score: 20 },
+                    { text: '看见问题不处理、不愿主动协助、被动工作', score: 0 },
+                    { text: '消极抱怨、计较得失、不愿配合补位', score: -10 },
+                    { text: '全程坐等工作、完全不参与协助与维护', score: -20 },
+                    { text: '优秀+5分（当日主动付出多、高频补位、带动团队氛围）', score: 25 }
+                ]
+            },
+            '微笑服务': {
+                desc: '接待客户发自内心面带微笑，举止淡雅、落落大方，服务礼貌得体。',
+                options: [
+                    { text: '全程微笑服务、举止优雅、待客礼貌', score: 20 },
+                    { text: '表情僵硬、微笑不足、待客不够热情', score: 0 },
+                    { text: '面无表情、呆滞冷漠、对客人无回应', score: -10 },
+                    { text: '态度差、冷脸待客、服务生硬失礼', score: -20 },
+                    { text: '优秀+5分（当日服务温柔得体、微笑暖心、客评良好）', score: 25 }
+                ]
+            }
+        };
+        
+        let selectedDimensions = [];
+        let dimensionScores = {};
+        let allScores = [];
+        
+        // 显示同步状态
+        function showSyncStatus(message, type) {
+            const status = document.getElementById('sync-status');
+            status.textContent = message;
+            status.className = `sync-status ${type}`;
+            status.style.display = 'inline-block';
+            
+            if (type === 'success') {
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+            }
+        }
+        
+        // Supabase REST API 调用
+        async function supabaseRequest(endpoint, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                }
+            };
+            
+            if (body) {
+                // Supabase REST API 插入操作需要数组格式
+                options.body = JSON.stringify(Array.isArray(body) ? body : [body]);
+            }
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, options);
+            
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Supabase error: ${error}`);
+            }
+            
+            return response.json();
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('score-date').value = today;
+            document.getElementById('filter-date').value = today;
+            
+            // 设置默认月份
+            const now = new Date();
+            document.getElementById('stats-month').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            // 维度选择事件
+            document.querySelectorAll('.dimension-checkbox').forEach(cb => {
+                cb.addEventListener('click', function() {
+                    const dimName = this.dataset.dim;
+                    const isSelected = this.classList.contains('selected');
+                    
+                    if (isSelected) {
+                        // 取消选择
+                        this.classList.remove('selected');
+                        selectedDimensions = selectedDimensions.filter(d => d !== dimName);
+                    } else {
+                        // 检查是否已达4个
+                        if (selectedDimensions.length >= 4) {
+                            alert('最多选择4个维度');
+                            return;
+                        }
+                        // 添加选择
+                        this.classList.add('selected');
+                        selectedDimensions.push(dimName);
+                    }
+                    
+                    renderDimensionCards();
+                    updateSummary();
+                });
+            });
+            
+            // Tab切换
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(`view-${this.dataset.view}`).classList.add('active');
+                    
+                    if (this.dataset.view === 'list') loadScores();
+                    if (this.dataset.view === 'stats') loadStats();
+                });
+            });
+            
+            // 管理层加分事件
+            document.getElementById('management-bonus').addEventListener('input', updateSummary);
+            document.getElementById('management-bonus-by').addEventListener('change', updateSummary);
+            
+            // 初始加载数据
+            loadScores();
+        });
+        
+        function renderDimensionCards() {
+            const container = document.getElementById('dimension-cards');
+            container.innerHTML = '';
+            
+            // 清理未选中的维度分数
+            Object.keys(dimensionScores).forEach(dim => {
+                if (!selectedDimensions.includes(dim)) {
+                    delete dimensionScores[dim];
+                }
+            });
+            
+            selectedDimensions.forEach(dim => {
+                const config = dimensions[dim];
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="dimension-card">
+                        <h3>${dim}</h3>
+                        <p class="desc">${config.desc}</p>
+                        <div class="score-options">
+                            ${config.options.map((opt, idx) => `
+                                <div class="score-option ${dimensionScores[dim]?.level === idx ? 'selected' : ''}" data-dim="${dim}" data-idx="${idx}">
+                                    <span class="radio-icon"></span>
+                                    <span class="option-text">${opt.text}</span>
+                                    <span class="option-score">${opt.score > 0 ? '+' : ''}${opt.score}分</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                            <label>备注（选填）</label>
+                            <input type="text" id="dim-note-${dim}" placeholder="输入备注..." value="${dimensionScores[dim]?.note || ''}">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                // 绑定选项事件
+                card.querySelectorAll('.score-option').forEach(opt => {
+                    opt.addEventListener('click', function() {
+                        const dimName = this.dataset.dim;
+                        const idx = parseInt(this.dataset.idx);
+                        const note = document.getElementById(`dim-note-${dimName}`).value.trim();
+                        
+                        dimensionScores[dimName] = {
+                            score: config.options[idx].score,
+                            level: idx,
+                            note: note
+                        };
+                        
+                        // 更新样式
+                        card.querySelectorAll('.score-option').forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        
+                        updateSummary();
+                    });
+                });
+                
+                // 绑定备注输入事件
+                const noteInput = card.querySelector(`#dim-note-${dim}`);
+                noteInput.addEventListener('input', function() {
+                    if (dimensionScores[dim]) {
+                        dimensionScores[dim].note = this.value.trim();
+                    }
+                });
+            });
+        }
+        
+        function updateSummary() {
+            let baseScore = 0;
+            let bonusScore = 0;
+            
+            Object.values(dimensionScores).forEach(ds => {
+                if (ds.score >= 20) {
+                    baseScore += 20;
+                    if (ds.score > 20) bonusScore += 5;
+                } else {
+                    baseScore += ds.score;
+                }
+            });
+            
+            const mgmtBonus = parseInt(document.getElementById('management-bonus').value) || 0;
+            const total = baseScore + bonusScore + mgmtBonus;
+            
+            document.getElementById('summary-base').textContent = `${baseScore}分`;
+            document.getElementById('summary-bonus').textContent = `+${bonusScore}分`;
+            document.getElementById('summary-mgmt').textContent = mgmtBonus > 0 ? `+${mgmtBonus}分` : '0分';
+            document.getElementById('summary-total').textContent = `${total}分`;
+        }
+        
+        async function submitScore() {
+            const date = document.getElementById('score-date').value;
+            const employee = document.getElementById('employee-name').value.trim();
+            const evaluator = document.getElementById('evaluator-name').value.trim();
+            
+            if (!date || !employee || !evaluator) {
+                alert('请填写完整基本信息');
+                return;
+            }
+            
+            if (selectedDimensions.length !== 4) {
+                alert('请选择4个评分维度');
+                return;
+            }
+            
+            if (Object.keys(dimensionScores).length !== 4) {
+                alert('请完成所有维度的评分');
+                return;
+            }
+            
+            const mgmtBonusBy = document.getElementById('management-bonus-by').value;
+            const mgmtBonus = parseInt(document.getElementById('management-bonus').value) || 0;
+            const mgmtReason = document.getElementById('management-bonus-reason').value.trim();
+            
+            if (mgmtBonusBy && !mgmtBonus) {
+                alert('选择了加分人但未填写加分分值');
+                return;
+            }
+            
+            // 计算分数
+            let baseScore = 0;
+            let bonusScore = 0;
+            const dimResults = [];
+            
+            selectedDimensions.forEach(dim => {
+                const ds = dimensionScores[dim];
+                const note = document.getElementById(`dim-note-${dim}`).value.trim();
+                dimResults.push({
+                    name: dim,
+                    score: ds.score,
+                    level: ds.level,
+                    note: note
+                });
+                
+                if (ds.score >= 20) {
+                    baseScore += 20;
+                    if (ds.score > 20) bonusScore += 5;
+                } else {
+                    baseScore += ds.score;
+                }
+            });
+            
+            const total = baseScore + bonusScore + mgmtBonus;
+            
+            const comment = document.getElementById('comment').value.trim();
+            
+            const scoreData = {
+                score_date: date,
+                employee_name: employee,
+                evaluator_name: evaluator,
+                dimensions: dimResults,
+                base_score: baseScore,
+                bonus_score: bonusScore,
+                management_bonus: mgmtBonus,
+                management_bonus_by: mgmtBonusBy || null,
+                management_bonus_reason: mgmtReason || null,
+                total_score: total,
+                rating: '',  // 每日不评级，留空
+                comment: comment || null
+            };
+            
+            // 提交按钮禁用
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            showSyncStatus('正在同步到云端...', 'syncing');
+            
+            try {
+                await supabaseRequest('tea_scores', 'POST', scoreData);
+                showSyncStatus('✓ 提交成功', 'success');
+                alert('评分提交成功！');
+                resetForm();
+            } catch (error) {
+                console.error('提交失败:', error);
+                showSyncStatus('✗ 提交失败', 'error');
+                alert('提交失败：' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交评分';
+            }
+        }
+        
+        function resetForm() {
+            document.getElementById('employee-name').value = '';
+            document.getElementById('evaluator-name').value = '';
+            document.querySelectorAll('.dimension-checkbox').forEach(cb => cb.classList.remove('selected'));
+            document.getElementById('dimension-cards').innerHTML = '';
+            document.getElementById('management-bonus-by').value = '';
+            document.getElementById('management-bonus').value = '';
+            document.getElementById('management-bonus-reason').value = '';
+            document.getElementById('comment').value = '';
+            selectedDimensions = [];
+            dimensionScores = {};
+            updateSummary();
+        }
+        
+        async function loadScores() {
+            const filterDate = document.getElementById('filter-date').value;
+            const container = document.getElementById('score-list');
+            container.innerHTML = '<div class="loading">加载中</div>';
+            
+            try {
+                let endpoint = 'tea_scores?order=created_at.desc';
+                if (filterDate) {
+                    endpoint += `&score_date=eq.${filterDate}`;
+                }
+                
+                const data = await supabaseRequest(endpoint);
+                allScores = data;
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>暂无评分记录</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = data.map((score, idx) => `
+                    <div class="score-list-item" onclick="showDetail(${idx})">
+                        <div class="score-list-header">
+                            <span class="score-list-name">${score.employee_name}</span>
+                            <span class="score-list-total">${score.total_score}分</span>
+                        </div>
+                        <div class="score-list-meta">
+                            <span>📅 ${score.score_date}</span>
+                            <span>👤 ${score.evaluator_name}</span>
+                        </div>
+                        <div class="score-list-dimensions">
+                            ${score.dimensions.map(d => `<span class="dim-tag">${d.name}: ${d.score > 0 ? '+' : ''}${d.score}分</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载失败:', error);
+                container.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
+            }
+        }
+        
+        function getRatingClass(rating) {
+            const map = { '优秀': 'excellent', '良好': 'good', '合格': 'pass', '需整改': 'improve', '不合格': 'fail' };
+            return map[rating] || 'pass';
+        }
+        
+        function showDetail(idx) {
+            const score = allScores[idx];
+            
+            const modal = document.getElementById('detail-modal');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h2 style="margin-bottom: 20px; color: #fff;">评分详情</h2>
+                <div class="share-card">
+                    <div class="share-card-header">
+                        <h3>📊 茶艺部每日评分</h3>
+                        <div class="date">${score.score_date}</div>
+                    </div>
+                    <div class="share-card-body">
+                        <div class="share-card-row">
+                            <span class="label">被评人</span>
+                            <span class="value">${score.employee_name}</span>
+                        </div>
+                        <div class="share-card-row">
+                            <span class="label">评分人</span>
+                            <span class="value">${score.evaluator_name}</span>
+                        </div>
+                        <div style="margin: 16px 0; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <div style="font-size: 13px; color: #888; margin-bottom: 8px;">评分维度</div>
+                            ${score.dimensions.map(d => `
+                                <div class="share-card-row">
+                                    <span class="label">${d.name}</span>
+                                    <span class="value">${d.score > 0 ? '+' : ''}${d.score}分 ${d.note ? '(' + d.note + ')' : ''}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="share-card-row">
+                            <span class="label">基础得分</span>
+                            <span class="value">${score.base_score}分</span>
+                        </div>
+                        <div class="share-card-row">
+                            <span class="label">维度加分</span>
+                            <span class="value">+${score.bonus_score}分</span>
+                        </div>
+                        ${score.management_bonus > 0 ? `
+                            <div class="share-card-row">
+                                <span class="label">管理层加分</span>
+                                <span class="value">+${score.management_bonus}分 (${score.management_bonus_by})</span>
+                            </div>
+                            ${score.management_bonus_reason ? `
+                                <div class="share-card-row">
+                                    <span class="label">加分理由</span>
+                                    <span class="value">${score.management_bonus_reason}</span>
+                                </div>
+                            ` : ''}
+                        ` : ''}
+                        <div class="share-card-row" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; margin-top: 12px;">
+                            <span class="label" style="font-size: 16px;">当日总分</span>
+                            <span class="value" style="font-size: 20px; color: #667eea;">${score.total_score}分</span>
+                        </div>
+                        ${score.comment ? `
+                            <div style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 13px; color: #888; margin-bottom: 4px;">评语</div>
+                                <div style="font-size: 14px; color: #ddd;">${score.comment}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="share-card-footer">
+                        加定餐饮 · 茶艺部评分系统
+                    </div>
+                </div>
+                <button class="btn" onclick="copyShareText(${idx})">复制分享文本</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('detail-modal').classList.remove('active');
+        }
+        
+        function copyShareText(idx) {
+            const score = allScores[idx];
+            
+            let text = `📊 茶艺部每日评分 - ${score.score_date}\n\n`;
+            text += `👤 被评人：${score.employee_name}\n`;
+            text += `📝 评分人：${score.evaluator_name}\n\n`;
+            text += `✅ 评分维度：\n`;
+            score.dimensions.forEach(d => {
+                text += `• ${d.name}：${d.score > 0 ? '+' : ''}${d.score}分${d.note ? ' (' + d.note + ')' : ''}\n`;
+            });
+            if (score.management_bonus > 0) {
+                text += `\n➕ 管理层加分：+${score.management_bonus}分 (${score.management_bonus_by})\n`;
+                if (score.management_bonus_reason) {
+                    text += `理由：${score.management_bonus_reason}\n`;
+                }
+            }
+            text += `\n🏆 当日总分：${score.total_score}分\n`;
+            if (score.comment) {
+                text += `\n💬 评语：${score.comment}\n`;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板，可粘贴到工作群');
+            }).catch(() => {
+                alert('复制失败，请手动复制');
+            });
+        }
+        
+        function generateShareCard() {
+            const date = document.getElementById('score-date').value;
+            const employee = document.getElementById('employee-name').value.trim();
+            const evaluator = document.getElementById('evaluator-name').value.trim();
+            
+            if (!employee) {
+                alert('请先填写被评人姓名');
+                return;
+            }
+            
+            let text = `📊 茶艺部每日评分 - ${date || '今日'}\n\n`;
+            text += `👤 被评人：${employee}\n`;
+            text += `📝 评分人：${evaluator || '待填写'}\n\n`;
+            
+            if (selectedDimensions.length > 0) {
+                text += `✅ 评分维度：\n`;
+                selectedDimensions.forEach(dim => {
+                    const ds = dimensionScores[dim];
+                    if (ds) {
+                        const note = document.getElementById(`dim-note-${dim}`).value.trim();
+                        text += `• ${dim}：${ds.score > 0 ? '+' : ''}${ds.score}分${note ? ' (' + note + ')' : ''}\n`;
+                    } else {
+                        text += `• ${dim}：待评分\n`;
+                    }
+                });
+            }
+            
+            const mgmtBonus = parseInt(document.getElementById('management-bonus').value) || 0;
+            const mgmtBy = document.getElementById('management-bonus-by').value;
+            if (mgmtBonus > 0) {
+                text += `\n➕ 管理层加分：+${mgmtBonus}分 (${mgmtBy})\n`;
+            }
+            
+            const total = document.getElementById('summary-total').textContent;
+            text += `\n🏆 当日总分：${total}\n`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('分享文本已生成并复制');
+            }).catch(() => {
+                alert('复制失败');
+            });
+        }
+        
+        async function generateDailySummary() {
+            const filterDate = document.getElementById('filter-date').value;
+            if (!filterDate) {
+                alert('请先选择日期');
+                return;
+            }
+            
+            try {
+                const data = await supabaseRequest(`tea_scores?score_date=eq.${filterDate}&order=created_at.asc`);
+                
+                if (data.length === 0) {
+                    alert('该日期暂无评分记录');
+                    return;
+                }
+                
+                let text = `📊 茶艺部每日评分汇总 - ${filterDate}\n\n`;
+                
+                data.forEach((score, idx) => {
+                    text += `${idx + 1}️⃣ ${score.employee_name} - 总分：${score.total_score}分\n`;
+                    text += `   📝 评分人：${score.evaluator_name}\n`;
+                    text += `   ✅ 评分维度：\n`;
+                    
+                    score.dimensions.forEach(d => {
+                        text += `   • ${d.name}：${d.score > 0 ? '+' : ''}${d.score}分${d.note ? ' (' + d.note + ')' : ''}\n`;
+                    });
+                    
+                    if (score.management_bonus > 0) {
+                        text += `   ➕ 管理层加分：+${score.management_bonus}分 (${score.management_bonus_by})\n`;
+                        if (score.management_bonus_reason) {
+                            text += `   理由：${score.management_bonus_reason}\n`;
+                        }
+                    }
+                    
+                    if (score.comment) {
+                        text += `   💬 评语：${score.comment}\n`;
+                    }
+                    
+                    text += `\n`;
+                });
+                
+                text += `共评${data.length}人`;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('当日汇总已复制到剪贴板');
+                }).catch(() => {
+                    alert('复制失败，请手动复制');
+                });
+            } catch (error) {
+                console.error('生成汇总失败:', error);
+                alert('生成失败，请重试');
+            }
+        }
+        
+        async function loadStats() {
+            const month = document.getElementById('stats-month').value;
+            if (!month) return;
+            
+            const container = document.getElementById('stats-content');
+            container.innerHTML = '<div class="loading">加载中</div>';
+            
+            try {
+                const startDate = `${month}-01`;
+                const endDate = `${month}-31`;
+                
+                const data = await supabaseRequest(
+                    `tea_scores?score_date=gte.${startDate}&score_date=lte.${endDate}&order=score_date.asc`
+                );
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>该月份暂无数据</p></div>';
+                    return;
+                }
+                
+                // 按员工分组统计
+                const employeeStats = {};
+                data.forEach(s => {
+                    if (!employeeStats[s.employee_name]) {
+                        employeeStats[s.employee_name] = {
+                            scores: [],
+                            total: 0,
+                            count: 0
+                        };
+                    }
+                    employeeStats[s.employee_name].scores.push(s);
+                    employeeStats[s.employee_name].total += s.total_score;
+                    employeeStats[s.employee_name].count++;
+                });
+                
+                let html = '<h3 style="color: #fff; margin-bottom: 16px;">员工月度统计</h3>';
+                html += '<p style="color: #888; font-size: 13px; margin-bottom: 20px;">月度平均分 = 当月所有日期总分之和 ÷ 评分天数（含管理层加分）</p>';
+                
+                Object.entries(employeeStats).forEach(([name, stats]) => {
+                    const avg = (stats.total / stats.count).toFixed(1);
+                    let rating = '';
+                    let reward = '';
+                    let ratingClass = '';
+                    if (avg >= 90) { rating = '优秀'; reward = '奖励500元'; ratingClass = 'rating-excellent'; }
+                    else if (avg >= 80) { rating = '良好'; reward = '奖励300元'; ratingClass = 'rating-good'; }
+                    else if (avg >= 70) { rating = '合格'; reward = '奖励100元'; ratingClass = 'rating-pass'; }
+                    else if (avg >= 60) { rating = '需整改'; reward = '无奖励'; ratingClass = 'rating-improve'; }
+                    else { rating = '不合格'; reward = '需更换人员'; ratingClass = 'rating-fail'; }
+                    
+                    html += `
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-size: 16px; font-weight: 600; color: #fff;">${name}</span>
+                                <span class="rating-badge ${ratingClass}">${rating}</span>
+                            </div>
+                            <div style="display: flex; gap: 20px; font-size: 13px; color: #888; margin-bottom: 8px;">
+                                <span>评分天数：${stats.count}天</span>
+                                <span>月度平均分：${avg}分</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(102,126,234,0.1); border-radius: 8px;">
+                                <span style="font-size: 13px; color: #aaa;">月度奖励</span>
+                                <span style="font-size: 14px; font-weight: 600; color: #667eea;">${reward}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('加载统计失败:', error);
+                container.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
+            }
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('detail-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>
