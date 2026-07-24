@@ -69,15 +69,15 @@
         
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
         
         .tab {
             flex: 1;
-            min-width: 120px;
-            padding: 12px 20px;
+            min-width: 80px;
+            padding: 12px 16px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
@@ -85,7 +85,7 @@
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .tab:hover {
@@ -578,6 +578,157 @@
             60%, 100% { content: '...'; }
         }
         
+        /* 名单管理样式 */
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .employee-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .employee-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .employee-name {
+            font-size: 15px;
+            color: #fff;
+        }
+        
+        .btn-delete {
+            padding: 6px 12px;
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 6px;
+            color: #f44336;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-delete:hover {
+            background: rgba(244, 67, 54, 0.25);
+        }
+        
+        .add-employee-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .add-employee-form input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+        }
+        
+        .add-employee-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-add {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* 可搜索下拉选择框 */
+        .employee-select-wrapper {
+            position: relative;
+        }
+        
+        .employee-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            margin-top: 4px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .employee-dropdown.show {
+            display: block;
+        }
+        
+        .employee-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #ddd;
+            font-size: 14px;
+        }
+        
+        .employee-option:hover {
+            background: rgba(102, 126, 234, 0.15);
+        }
+        
+        .employee-option.selected {
+            background: rgba(102, 126, 234, 0.2);
+            color: #fff;
+        }
+        
+        /* 评分记录删除按钮 */
+        .score-list-item {
+            position: relative;
+        }
+        
+        .btn-delete-score {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.2);
+            border-radius: 6px;
+            color: #f44336;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .btn-delete-score:hover {
+            background: rgba(244, 67, 54, 0.25);
+            transform: scale(1.1);
+        }
+        
         @media (max-width: 600px) {
             .dimension-selector {
                 grid-template-columns: 1fr;
@@ -606,9 +757,10 @@
         </header>
         
         <div class="tabs">
-            <div class="tab active" data-view="score">📝 评分录入</div>
-            <div class="tab" data-view="list">📋 评分记录</div>
-            <div class="tab" data-view="stats">📈 月度统计</div>
+            <div class="tab active" data-view="score">📝 评分</div>
+            <div class="tab" data-view="list">📋 记录</div>
+            <div class="tab" data-view="stats">📈 统计</div>
+            <div class="tab" data-view="employees">👥 名单</div>
         </div>
         
         <!-- 评分录入视图 -->
@@ -621,7 +773,10 @@
                 </div>
                 <div class="form-group">
                     <label>被评茶艺师</label>
-                    <input type="text" id="employee-name" placeholder="输入茶艺师姓名">
+                    <div class="employee-select-wrapper">
+                        <input type="text" id="employee-name" placeholder="点击选择或输入搜索..." autocomplete="off">
+                        <div class="employee-dropdown" id="employee-dropdown"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>评分人（楼面经理）</label>
@@ -735,6 +890,21 @@
                 <div id="stats-content">
                     <div class="loading">加载中</div>
                 </div>
+                <button class="btn" onclick="shareMonthlyStats()" id="btn-share-monthly" style="display:none;">📤 分享月度汇总</button>
+            </div>
+        </div>
+        
+        <!-- 名单管理视图 -->
+        <div class="view" id="view-employees">
+            <div class="card">
+                <h2>茶艺师名单管理</h2>
+                <div class="add-employee-form">
+                    <input type="text" id="new-employee-name" placeholder="输入茶艺师姓名">
+                    <button class="btn-add" onclick="addEmployee()">+ 添加</button>
+                </div>
+                <div class="employee-list" id="employee-list">
+                    <div class="loading">加载中</div>
+                </div>
             </div>
         </div>
     </div>
@@ -819,6 +989,7 @@
         let selectedDimensions = [];
         let dimensionScores = {};
         let allScores = [];
+        let employeeList = [];  // 茶艺师名单
         
         // 显示同步状态
         function showSyncStatus(message, type) {
@@ -906,6 +1077,7 @@
                     
                     if (this.dataset.view === 'list') loadScores();
                     if (this.dataset.view === 'stats') loadStats();
+                    if (this.dataset.view === 'employees') loadEmployees();
                 });
             });
             
@@ -913,9 +1085,57 @@
             document.getElementById('management-bonus').addEventListener('input', updateSummary);
             document.getElementById('management-bonus-by').addEventListener('change', updateSummary);
             
+            // 被评人下拉选择框事件
+            const employeeInput = document.getElementById('employee-name');
+            const employeeDropdown = document.getElementById('employee-dropdown');
+            
+            employeeInput.addEventListener('focus', function() {
+                showEmployeeDropdown('');
+            });
+            
+            employeeInput.addEventListener('input', function() {
+                showEmployeeDropdown(this.value);
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.employee-select-wrapper')) {
+                    employeeDropdown.classList.remove('show');
+                }
+            });
+            
+            // 名单输入框回车事件
+            document.getElementById('new-employee-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addEmployee();
+                }
+            });
+            
             // 初始加载数据
+            loadEmployees();
             loadScores();
         });
+        
+        // 显示茶艺师下拉列表
+        function showEmployeeDropdown(filter) {
+            const dropdown = document.getElementById('employee-dropdown');
+            const filtered = employeeList.filter(e => e.name.includes(filter));
+            
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="employee-option" style="color:#666;">暂无匹配人员</div>';
+            } else {
+                dropdown.innerHTML = filtered.map(e => 
+                    `<div class="employee-option" onclick="selectEmployee('${e.name}')">${e.name}</div>`
+                ).join('');
+            }
+            
+            dropdown.classList.add('show');
+        }
+        
+        // 选择茶艺师
+        function selectEmployee(name) {
+            document.getElementById('employee-name').value = name;
+            document.getElementById('employee-dropdown').classList.remove('show');
+        }
         
         function renderDimensionCards() {
             const container = document.getElementById('dimension-cards');
@@ -1132,17 +1352,20 @@
                 }
                 
                 container.innerHTML = data.map((score, idx) => `
-                    <div class="score-list-item" onclick="showDetail(${idx})">
-                        <div class="score-list-header">
-                            <span class="score-list-name">${score.employee_name}</span>
-                            <span class="score-list-total">${score.total_score}分</span>
-                        </div>
-                        <div class="score-list-meta">
-                            <span>📅 ${score.score_date}</span>
-                            <span>👤 ${score.evaluator_name}</span>
-                        </div>
-                        <div class="score-list-dimensions">
-                            ${score.dimensions.map(d => `<span class="dim-tag">${d.name}: ${d.score > 0 ? '+' : ''}${d.score}分</span>`).join('')}
+                    <div class="score-list-item">
+                        <button class="btn-delete-score" onclick="event.stopPropagation(); deleteScore(${score.id})" title="删除">×</button>
+                        <div onclick="showDetail(${idx})">
+                            <div class="score-list-header">
+                                <span class="score-list-name">${score.employee_name}</span>
+                                <span class="score-list-total">${score.total_score}分</span>
+                            </div>
+                            <div class="score-list-meta">
+                                <span>📅 ${score.score_date}</span>
+                                <span>👤 ${score.evaluator_name}</span>
+                            </div>
+                            <div class="score-list-dimensions">
+                                ${score.dimensions.map(d => `<span class="dim-tag">${d.name}: ${d.score > 0 ? '+' : ''}${d.score}分</span>`).join('')}
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -1374,6 +1597,7 @@
                 
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty-state"><p>该月份暂无数据</p></div>';
+                    document.getElementById('btn-share-monthly').style.display = 'none';
                     return;
                 }
                 
@@ -1391,6 +1615,9 @@
                     employeeStats[s.employee_name].total += s.total_score;
                     employeeStats[s.employee_name].count++;
                 });
+                
+                // 保存统计数据供分享使用
+                monthlyStatsData = employeeStats;
                 
                 let html = '<h3 style="color: #fff; margin-bottom: 16px;">员工月度统计</h3>';
                 html += '<p style="color: #888; font-size: 13px; margin-bottom: 20px;">月度平均分 = 当月所有日期总分之和 ÷ 评分天数（含管理层加分）</p>';
@@ -1425,6 +1652,7 @@
                 });
                 
                 container.innerHTML = html;
+                document.getElementById('btn-share-monthly').style.display = 'block';
             } catch (error) {
                 console.error('加载统计失败:', error);
                 container.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
@@ -1435,6 +1663,130 @@
         document.getElementById('detail-modal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+        
+        // ========== 名单管理功能 ==========
+        
+        async function loadEmployees() {
+            const container = document.getElementById('employee-list');
+            container.innerHTML = '<div class="loading">加载中</div>';
+            
+            try {
+                const data = await supabaseRequest('tea_employees?order=name.asc');
+                employeeList = data;
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>暂无茶艺师，请添加</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(e => `
+                    <div class="employee-item">
+                        <span class="employee-name">${e.name}</span>
+                        <button class="btn-delete" onclick="deleteEmployee(${e.id}, '${e.name}')">删除</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载名单失败:', error);
+                container.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
+            }
+        }
+        
+        async function addEmployee() {
+            const input = document.getElementById('new-employee-name');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('请输入茶艺师姓名');
+                return;
+            }
+            
+            // 检查是否已存在
+            if (employeeList.some(e => e.name === name)) {
+                alert('该茶艺师已存在');
+                return;
+            }
+            
+            try {
+                await supabaseRequest('tea_employees', 'POST', { name: name });
+                input.value = '';
+                loadEmployees();
+                showSyncStatus('✓ 添加成功', 'success');
+            } catch (error) {
+                console.error('添加失败:', error);
+                alert('添加失败：' + error.message);
+            }
+        }
+        
+        async function deleteEmployee(id, name) {
+            if (!confirm(`确定删除茶艺师「${name}」吗？`)) {
+                return;
+            }
+            
+            try {
+                await supabaseRequest(`tea_employees?id=eq.${id}`, 'DELETE');
+                loadEmployees();
+                showSyncStatus('✓ 删除成功', 'success');
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败：' + error.message);
+            }
+        }
+        
+        // ========== 删除评分记录功能 ==========
+        
+        async function deleteScore(id) {
+            if (!confirm('确定删除该条评分记录吗？')) {
+                return;
+            }
+            
+            try {
+                await supabaseRequest(`tea_scores?id=eq.${id}`, 'DELETE');
+                loadScores();
+                showSyncStatus('✓ 删除成功', 'success');
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败：' + error.message);
+            }
+        }
+        
+        // ========== 月度统计分享功能 ==========
+        
+        let monthlyStatsData = null;
+        
+        async function shareMonthlyStats() {
+            if (!monthlyStatsData) {
+                alert('请先加载月度统计数据');
+                return;
+            }
+            
+            const month = document.getElementById('stats-month').value;
+            const [year, monthNum] = month.split('-');
+            
+            let text = `📊 茶艺部月度评分汇总 - ${year}年${parseInt(monthNum)}月\n\n`;
+            
+            Object.entries(monthlyStatsData).forEach(([name, stats], idx) => {
+                const avg = (stats.total / stats.count).toFixed(1);
+                let rating = '';
+                let reward = '';
+                if (avg >= 90) { rating = '优秀'; reward = '奖励500元'; }
+                else if (avg >= 80) { rating = '良好'; reward = '奖励300元'; }
+                else if (avg >= 70) { rating = '合格'; reward = '奖励100元'; }
+                else if (avg >= 60) { rating = '需整改'; reward = '无奖励'; }
+                else { rating = '不合格'; reward = '需更换人员'; }
+                
+                text += `${idx + 1}️⃣ ${name}\n`;
+                text += `   评分天数：${stats.count}天 | 月度平均分：${avg}分\n`;
+                text += `   评级：${rating} | 奖励：${reward}\n\n`;
+            });
+            
+            text += `共评${Object.keys(monthlyStatsData).length}人 · 加定餐饮茶艺部`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('月度汇总已复制到剪贴板');
+            }).catch(() => {
+                alert('复制失败，请手动复制');
+            });
+        }
     </script>
 </body>
 </html>
