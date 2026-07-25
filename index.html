@@ -922,6 +922,24 @@
         const SUPABASE_URL = 'https://hqfyvejerzojmyifenwy.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnl2ZWplcnpvam15aWZlbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MjM2NTMsImV4cCI6MjEwMDE5OTY1M30.S4bTAcd19tjP-ApKA00ziCK4vpzWCyYuiWa1_p0xZpU';
         
+        // 门店配置
+        const STORES = {
+            'dongkeng': { name: '东坑店', subtitle: '加定餐饮 · 东坑店' },
+            'dalang': { name: '大朗名粤星厨', subtitle: '加定餐饮 · 大朗名粤星厨' }
+        };
+        
+        // 读取URL参数获取门店标识
+        const urlParams = new URLSearchParams(window.location.search);
+        const STORE_ID = urlParams.get('store') || 'dongkeng';
+        const STORE_INFO = STORES[STORE_ID] || STORES['dongkeng'];
+        
+        // 动态设置页面标题
+        document.addEventListener('DOMContentLoaded', function() {
+            document.title = `茶艺部每日评分系统 - ${STORE_INFO.name}`;
+            document.querySelector('header h1').textContent = `🍵 茶艺部每日评分系统`;
+            document.querySelector('header p').textContent = STORE_INFO.subtitle;
+        });
+        
         // 维度配置
         const dimensions = {
             '自我管理': {
@@ -1294,7 +1312,8 @@
                 management_bonus_reason: mgmtReason || null,
                 total_score: total,
                 rating: '',  // 每日不评级，留空
-                comment: comment || null
+                comment: comment || null,
+                store_name: STORE_ID  // 门店标识
             };
             
             // 提交按钮禁用
@@ -1338,7 +1357,7 @@
             container.innerHTML = '<div class="loading">加载中</div>';
             
             try {
-                let endpoint = 'tea_scores?order=created_at.desc';
+                let endpoint = `tea_scores?store_name=eq.${STORE_ID}&order=created_at.desc`;
                 if (filterDate) {
                     endpoint += `&score_date=eq.${filterDate}`;
                 }
@@ -1443,7 +1462,7 @@
                         ` : ''}
                     </div>
                     <div class="share-card-footer">
-                        加定餐饮 · 茶艺部评分系统
+                        ${STORE_INFO.name} · 茶艺部评分系统
                     </div>
                 </div>
                 <button class="btn" onclick="copyShareText(${idx})">复制分享文本</button>
@@ -1535,14 +1554,14 @@
             }
             
             try {
-                const data = await supabaseRequest(`tea_scores?score_date=eq.${filterDate}&order=created_at.asc`);
+                const data = await supabaseRequest(`tea_scores?store_name=eq.${STORE_ID}&score_date=eq.${filterDate}&order=created_at.asc`);
                 
                 if (data.length === 0) {
                     alert('该日期暂无评分记录');
                     return;
                 }
                 
-                let text = `📊 茶艺部每日评分汇总 - ${filterDate}\n\n`;
+                let text = `📊 ${STORE_INFO.name} - 茶艺部每日评分汇总 - ${filterDate}\n\n`;
                 
                 data.forEach((score, idx) => {
                     text += `${idx + 1}️⃣ ${score.employee_name} - 总分：${score.total_score}分\n`;
@@ -1567,7 +1586,7 @@
                     text += `\n`;
                 });
                 
-                text += `共评${data.length}人`;
+                text += `共评${data.length}人 · ${STORE_INFO.name}`;
                 
                 navigator.clipboard.writeText(text).then(() => {
                     alert('当日汇总已复制到剪贴板');
@@ -1592,7 +1611,7 @@
                 const endDate = `${month}-31`;
                 
                 const data = await supabaseRequest(
-                    `tea_scores?score_date=gte.${startDate}&score_date=lte.${endDate}&order=score_date.asc`
+                    `tea_scores?store_name=eq.${STORE_ID}&score_date=gte.${startDate}&score_date=lte.${endDate}&order=score_date.asc`
                 );
                 
                 if (data.length === 0) {
@@ -1671,7 +1690,7 @@
             container.innerHTML = '<div class="loading">加载中</div>';
             
             try {
-                const data = await supabaseRequest('tea_employees?order=name.asc');
+                const data = await supabaseRequest(`tea_employees?store_name=eq.${STORE_ID}&order=name.asc`);
                 employeeList = data;
                 
                 if (data.length === 0) {
@@ -1707,7 +1726,7 @@
             }
             
             try {
-                await supabaseRequest('tea_employees', 'POST', { name: name });
+                await supabaseRequest('tea_employees', 'POST', { name: name, store_name: STORE_ID });
                 input.value = '';
                 loadEmployees();
                 showSyncStatus('✓ 添加成功', 'success');
@@ -1762,7 +1781,7 @@
             const month = document.getElementById('stats-month').value;
             const [year, monthNum] = month.split('-');
             
-            let text = `📊 茶艺部月度评分汇总 - ${year}年${parseInt(monthNum)}月\n\n`;
+            let text = `📊 ${STORE_INFO.name} - 茶艺部月度评分汇总 - ${year}年${parseInt(monthNum)}月\n\n`;
             
             Object.entries(monthlyStatsData).forEach(([name, stats], idx) => {
                 const avg = (stats.total / stats.count).toFixed(1);
@@ -1779,7 +1798,7 @@
                 text += `   评级：${rating} | 奖励：${reward}\n\n`;
             });
             
-            text += `共评${Object.keys(monthlyStatsData).length}人 · 加定餐饮茶艺部`;
+            text += `共评${Object.keys(monthlyStatsData).length}人 · ${STORE_INFO.name}`;
             
             navigator.clipboard.writeText(text).then(() => {
                 alert('月度汇总已复制到剪贴板');
