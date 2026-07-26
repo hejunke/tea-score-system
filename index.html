@@ -924,8 +924,27 @@
         
         // 门店配置
         const STORES = {
-            'dongkeng': { name: '年顺渔村东坑店', subtitle: '加定餐饮 · 年顺渔村东坑店' },
-            'dalang': { name: '大朗名粤星厨', subtitle: '加定餐饮 · 大朗名粤星厨' }
+            'dongkeng': {
+                name: '年顺渔村东坑店',
+                subtitle: '加定餐饮 · 年顺渔村东坑店',
+                rewards: [
+                    { min: 90, label: '优秀', reward: '奖励500元', class: 'rating-excellent' },
+                    { min: 80, label: '良好', reward: '奖励300元', class: 'rating-good' },
+                    { min: 70, label: '合格', reward: '奖励100元', class: 'rating-pass' },
+                    { min: 60, label: '需整改', reward: '无奖励', class: 'rating-improve' },
+                    { min: 0,  label: '不合格', reward: '需更换人员', class: 'rating-fail' }
+                ]
+            },
+            'dalang': {
+                name: '大朗名粤星厨',
+                subtitle: '加定餐饮 · 大朗名粤星厨',
+                rewards: [
+                    { min: 90, label: '优秀', reward: '奖励400元', class: 'rating-excellent' },
+                    { min: 80, label: '良好', reward: '奖励200元', class: 'rating-good' },
+                    { min: 70, label: '合格', reward: '奖励100元', class: 'rating-pass' },
+                    { min: 0,  label: '不合格', reward: '需更换人员', class: 'rating-fail' }
+                ]
+            }
         };
         
         // 读取URL参数获取门店标识
@@ -1641,14 +1660,20 @@
                 
                 Object.entries(employeeStats).forEach(([name, stats]) => {
                     const avg = (stats.total / stats.count).toFixed(1);
+                    
+                    // 根据门店配置获取评级和奖励
                     let rating = '';
                     let reward = '';
                     let ratingClass = '';
-                    if (avg >= 90) { rating = '优秀'; reward = '奖励500元'; ratingClass = 'rating-excellent'; }
-                    else if (avg >= 80) { rating = '良好'; reward = '奖励300元'; ratingClass = 'rating-good'; }
-                    else if (avg >= 70) { rating = '合格'; reward = '奖励100元'; ratingClass = 'rating-pass'; }
-                    else if (avg >= 60) { rating = '需整改'; reward = '无奖励'; ratingClass = 'rating-improve'; }
-                    else { rating = '不合格'; reward = '需更换人员'; ratingClass = 'rating-fail'; }
+                    
+                    for (const r of STORE_INFO.rewards) {
+                        if (avg >= r.min) {
+                            rating = r.label;
+                            reward = r.reward;
+                            ratingClass = r.class;
+                            break;
+                        }
+                    }
                     
                     html += `
                         <div class="card" style="margin-bottom: 12px;">
@@ -1785,11 +1810,15 @@
                 const avg = (stats.total / stats.count).toFixed(1);
                 let rating = '';
                 let reward = '';
-                if (avg >= 90) { rating = '优秀'; reward = '奖励500元'; }
-                else if (avg >= 80) { rating = '良好'; reward = '奖励300元'; }
-                else if (avg >= 70) { rating = '合格'; reward = '奖励100元'; }
-                else if (avg >= 60) { rating = '需整改'; reward = '无奖励'; }
-                else { rating = '不合格'; reward = '需更换人员'; }
+                
+                // 根据门店配置获取评级和奖励
+                for (const r of STORE_INFO.rewards) {
+                    if (avg >= r.min) {
+                        rating = r.label;
+                        reward = r.reward;
+                        break;
+                    }
+                }
                 
                 text += `${idx + 1}️⃣ ${name}\n`;
                 text += `   评分天数：${stats.count}天 | 月度平均分：${avg}分\n`;
