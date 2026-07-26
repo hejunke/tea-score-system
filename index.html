@@ -119,6 +119,8 @@
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            z-index: 1;
         }
         
         .card h2 {
@@ -663,7 +665,8 @@
         /* 可搜索下拉选择框 */
         .employee-select-wrapper {
             position: relative;
-            z-index: 10;
+            z-index: 9999;
+            isolation: isolate;
         }
         
         .employee-dropdown {
@@ -677,7 +680,7 @@
             border: 1px solid rgba(102, 126, 234, 0.3);
             border-radius: 10px;
             margin-top: 4px;
-            z-index: 100;
+            z-index: 10000;
             display: none;
         }
         
