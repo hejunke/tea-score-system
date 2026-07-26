@@ -665,13 +665,10 @@
         /* 可搜索下拉选择框 */
         .employee-select-wrapper {
             position: relative;
-            z-index: 9999;
-            isolation: isolate;
         }
         
         .employee-dropdown {
-            position: absolute;
-            top: 100%;
+            position: fixed;
             left: 0;
             right: 0;
             max-height: 200px;
@@ -679,8 +676,7 @@
             background: #1a1a2e;
             border: 1px solid rgba(102, 126, 234, 0.3);
             border-radius: 10px;
-            margin-top: 4px;
-            z-index: 10000;
+            z-index: 99999;
             display: none;
         }
         
@@ -1146,12 +1142,6 @@
                 showEmployeeDropdown(this.value);
             });
             
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.employee-select-wrapper')) {
-                    employeeDropdown.classList.remove('show');
-                }
-            });
-            
             // 名单输入框回车事件
             document.getElementById('new-employee-name').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -1167,6 +1157,7 @@
         // 显示茶艺师下拉列表
         function showEmployeeDropdown(filter) {
             const dropdown = document.getElementById('employee-dropdown');
+            const input = document.getElementById('employee-name');
             const filtered = employeeList.filter(e => e.name.includes(filter));
             
             if (filtered.length === 0) {
@@ -1177,6 +1168,17 @@
                 ).join('');
             }
             
+            // 移到 body 下，避免被卡片遮挡
+            if (dropdown.parentElement !== document.body) {
+                document.body.appendChild(dropdown);
+            }
+            
+            // 计算位置
+            const rect = input.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.width = rect.width + 'px';
+            
             dropdown.classList.add('show');
         }
         
@@ -1185,6 +1187,15 @@
             document.getElementById('employee-name').value = name;
             document.getElementById('employee-dropdown').classList.remove('show');
         }
+        
+        // 点击外部关闭下拉框
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('employee-dropdown');
+            const input = document.getElementById('employee-name');
+            if (!e.target.closest('.employee-select-wrapper') && e.target !== dropdown) {
+                dropdown.classList.remove('show');
+            }
+        });
         
         function renderDimensionCards() {
             const container = document.getElementById('dimension-cards');
