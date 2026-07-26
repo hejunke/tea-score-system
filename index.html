@@ -666,8 +666,7 @@
         }
         
         .employee-dropdown {
-            position: absolute;
-            top: 100%;
+            position: fixed;
             left: 0;
             right: 0;
             max-height: 200px;
@@ -675,7 +674,6 @@
             background: #1a1a2e;
             border: 1px solid rgba(102, 126, 234, 0.3);
             border-radius: 10px;
-            margin-top: 4px;
             z-index: 9999;
             display: none;
         }
@@ -1148,6 +1146,11 @@
                 }
             });
             
+            // 滚动时关闭下拉框
+            window.addEventListener('scroll', function() {
+                employeeDropdown.classList.remove('show');
+            }, true);
+            
             // 名单输入框回车事件
             document.getElementById('new-employee-name').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -1163,6 +1166,7 @@
         // 显示茶艺师下拉列表
         function showEmployeeDropdown(filter) {
             const dropdown = document.getElementById('employee-dropdown');
+            const input = document.getElementById('employee-name');
             const filtered = employeeList.filter(e => e.name.includes(filter));
             
             if (filtered.length === 0) {
@@ -1171,6 +1175,18 @@
                 dropdown.innerHTML = filtered.map(e => 
                     `<div class="employee-option" onclick="selectEmployee('${e.name}')">${e.name}</div>`
                 ).join('');
+            }
+            
+            // 动态计算位置（fixed 定位）
+            const rect = input.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.width = rect.width + 'px';
+            
+            // 检查是否超出视口底部，如果超出则显示在上方
+            const dropdownHeight = 200;
+            if (rect.bottom + dropdownHeight > window.innerHeight) {
+                dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px';
             }
             
             dropdown.classList.add('show');
