@@ -933,13 +933,6 @@
         const STORE_ID = urlParams.get('store') || 'dongkeng';
         const STORE_INFO = STORES[STORE_ID] || STORES['dongkeng'];
         
-        // 动态设置页面标题
-        document.addEventListener('DOMContentLoaded', function() {
-            document.title = `茶艺部每日评分系统 - ${STORE_INFO.name}`;
-            document.querySelector('header h1').textContent = `🍵 茶艺部每日评分系统`;
-            document.querySelector('header p').textContent = STORE_INFO.subtitle;
-        });
-        
         // 维度配置
         const dimensions = {
             '自我管理': {
@@ -1050,6 +1043,11 @@
         
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 动态设置页面标题
+            document.title = `茶艺部每日评分系统 - ${STORE_INFO.name}`;
+            document.querySelector('header h1').textContent = `🍵 茶艺部每日评分系统`;
+            document.querySelector('header p').textContent = STORE_INFO.subtitle;
+            
             // 设置默认日期为今天
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('score-date').value = today;
