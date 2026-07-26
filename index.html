@@ -917,6 +917,16 @@
         </div>
     </div>
     
+    <!-- 分享弹窗 -->
+    <div class="modal" id="share-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            <h2 style="margin-bottom: 16px; color: #fff;">分享文本</h2>
+            <textarea id="share-text" readonly style="width: 100%; min-height: 300px; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; line-height: 1.6; resize: vertical;"></textarea>
+            <button class="btn" onclick="doCopyShareText()" style="margin-top: 16px;">📋 复制到剪贴板</button>
+        </div>
+    </div>
+    
     <script>
         // Supabase 配置
         const SUPABASE_URL = 'https://hqfyvejerzojmyifenwy.supabase.co';
@@ -1513,9 +1523,7 @@
                 text += `\n💬 评语：${score.comment}\n`;
             }
             
-            copyText(text).then(success => {
-                alert(success ? '已复制到剪贴板，可粘贴到工作群' : '复制失败，请手动复制');
-            });
+            showShareModal(text);
         }
         
         function generateShareCard() {
@@ -1554,9 +1562,7 @@
             const total = document.getElementById('summary-total').textContent;
             text += `\n🏆 当日总分：${total}\n`;
             
-            copyText(text).then(success => {
-                alert(success ? '分享文本已生成并复制' : '复制失败，请手动复制');
-            });
+            showShareModal(text);
         }
         
         // 兼容剪贴板复制（支持移动端）
@@ -1583,6 +1589,33 @@
                 return Promise.resolve(false);
             }
         }
+        
+        // 显示分享模态框（iOS 兼容方案）
+        function showShareModal(text) {
+            document.getElementById('share-text').value = text;
+            document.getElementById('share-modal').classList.add('active');
+        }
+        
+        // 关闭分享模态框
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.remove('active');
+        }
+        
+        // 执行复制（在用户点击的同步上下文中）
+        function doCopyShareText() {
+            const text = document.getElementById('share-text').value;
+            copyText(text).then(success => {
+                alert(success ? '已复制到剪贴板' : '复制失败，请长按文本手动复制');
+                if (success) {
+                    closeShareModal();
+                }
+            });
+        }
+        
+        // 点击分享模态框外部关闭
+        document.getElementById('share-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeShareModal();
+        });
         
         async function generateDailySummary() {
             const filterDate = document.getElementById('filter-date').value;
@@ -1626,9 +1659,7 @@
                 
                 text += `共评${data.length}人 · ${STORE_INFO.name}`;
                 
-                copyText(text).then(success => {
-                    alert(success ? '当日汇总已复制到剪贴板' : '复制失败，请手动复制');
-                });
+                showShareModal(text);
             } catch (error) {
                 console.error('生成汇总失败:', error);
                 alert('生成失败，请重试');
@@ -1846,9 +1877,7 @@
             
             text += `共评${Object.keys(monthlyStatsData).length}人 · ${STORE_INFO.name}`;
             
-            copyText(text).then(success => {
-                alert(success ? '月度汇总已复制到剪贴板' : '复制失败，请手动复制');
-            });
+            showShareModal(text);
         }
     </script>
 </body>
