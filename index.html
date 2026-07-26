@@ -1513,10 +1513,8 @@
                 text += `\n💬 评语：${score.comment}\n`;
             }
             
-            navigator.clipboard.writeText(text).then(() => {
-                alert('已复制到剪贴板，可粘贴到工作群');
-            }).catch(() => {
-                alert('复制失败，请手动复制');
+            copyText(text).then(success => {
+                alert(success ? '已复制到剪贴板，可粘贴到工作群' : '复制失败，请手动复制');
             });
         }
         
@@ -1556,11 +1554,34 @@
             const total = document.getElementById('summary-total').textContent;
             text += `\n🏆 当日总分：${total}\n`;
             
-            navigator.clipboard.writeText(text).then(() => {
-                alert('分享文本已生成并复制');
-            }).catch(() => {
-                alert('复制失败');
+            copyText(text).then(success => {
+                alert(success ? '分享文本已生成并复制' : '复制失败，请手动复制');
             });
+        }
+        
+        // 兼容剪贴板复制（支持移动端）
+        function copyText(text) {
+            // 优先使用现代 API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+            }
+            // 降级方案：使用 textarea + execCommand
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const result = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return Promise.resolve(result);
+            } catch (e) {
+                document.body.removeChild(textarea);
+                return Promise.resolve(false);
+            }
         }
         
         async function generateDailySummary() {
@@ -1605,10 +1626,8 @@
                 
                 text += `共评${data.length}人 · ${STORE_INFO.name}`;
                 
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('当日汇总已复制到剪贴板');
-                }).catch(() => {
-                    alert('复制失败，请手动复制');
+                copyText(text).then(success => {
+                    alert(success ? '当日汇总已复制到剪贴板' : '复制失败，请手动复制');
                 });
             } catch (error) {
                 console.error('生成汇总失败:', error);
@@ -1827,10 +1846,8 @@
             
             text += `共评${Object.keys(monthlyStatsData).length}人 · ${STORE_INFO.name}`;
             
-            navigator.clipboard.writeText(text).then(() => {
-                alert('月度汇总已复制到剪贴板');
-            }).catch(() => {
-                alert('复制失败，请手动复制');
+            copyText(text).then(success => {
+                alert(success ? '月度汇总已复制到剪贴板' : '复制失败，请手动复制');
             });
         }
     </script>
