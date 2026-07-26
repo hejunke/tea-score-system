@@ -668,15 +668,17 @@
         }
         
         .employee-dropdown {
-            position: fixed;
+            position: absolute;
+            top: 100%;
             left: 0;
             right: 0;
-            max-height: 200px;
+            max-height: 120px;
             overflow-y: auto;
             background: #1a1a2e;
             border: 1px solid rgba(102, 126, 234, 0.3);
             border-radius: 10px;
-            z-index: 99999;
+            margin-top: 4px;
+            z-index: 100;
             display: none;
         }
         
@@ -1157,7 +1159,6 @@
         // 显示茶艺师下拉列表
         function showEmployeeDropdown(filter) {
             const dropdown = document.getElementById('employee-dropdown');
-            const input = document.getElementById('employee-name');
             const filtered = employeeList.filter(e => e.name.includes(filter));
             
             if (filtered.length === 0) {
@@ -1167,17 +1168,6 @@
                     `<div class="employee-option" onclick="selectEmployee('${e.name}')">${e.name}</div>`
                 ).join('');
             }
-            
-            // 移到 body 下，避免被卡片遮挡
-            if (dropdown.parentElement !== document.body) {
-                document.body.appendChild(dropdown);
-            }
-            
-            // 计算位置
-            const rect = input.getBoundingClientRect();
-            dropdown.style.top = (rect.bottom + 4) + 'px';
-            dropdown.style.left = rect.left + 'px';
-            dropdown.style.width = rect.width + 'px';
             
             dropdown.classList.add('show');
         }
@@ -1191,8 +1181,7 @@
         // 点击外部关闭下拉框
         document.addEventListener('click', function(e) {
             const dropdown = document.getElementById('employee-dropdown');
-            const input = document.getElementById('employee-name');
-            if (!e.target.closest('.employee-select-wrapper') && e.target !== dropdown) {
+            if (!e.target.closest('.employee-select-wrapper')) {
                 dropdown.classList.remove('show');
             }
         });
